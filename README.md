@@ -1,36 +1,44 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Drinko Coffee
 
-## Getting Started
+Theme and design provided by undiegravity.
 
-First, run the development server:
+## Project Features
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+* 100 percent viewport immersive hero section with video modal craft pour preview
+* Dynamic curated menu with real time category filtering and live search
+* Multi page architecture including dedicated Menu, Delivery, Locations, and Account pages
+* Flexible order fulfillment with Delivery and Takeaway pickup options at checkout
+* Customer authentication and login system with persistent profile management
+* Complete order history tracker with itemized receipts and order status
+* Loyalty stamp card system automatically unlocking free coffee coupon FREECOFFEE after 6 completed orders
+* Browser storage persistence for profile, basket, checkout preferences, order history, and loyalty progress
+* Full responsive architectural footer with operating hours, store directory, and newsletter
+* Global theme system utilizing semantic CSS design tokens for colors and typography
+* Backend ready modular architecture with typed data contracts
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+The current demo stores profile, basket, and checkout state in browser local storage. Replace the storage adapter with the documented API integration when connecting a backend.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Tech Stack and Versions
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+* Next.js 16.4.5
+* React 19.3.0
+* Tailwind CSS 4.0
+* TypeScript 5.0
+* Lucide React
 
-## Learn More
+## Backend API Endpoints
 
-To learn more about Next.js, take a look at the following resources:
+The frontend is structured to consume the following RESTful API endpoints:
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+* GET /api/v1/navigation : Retrieve main header navigation items
+* GET /api/v1/hero : Retrieve hero section banner content and video asset URL
+* GET /api/v1/categories : Retrieve active coffee and pastry categories
+* GET /api/v1/products : Retrieve menu items with category filtering and pagination
+* GET /api/v1/products/:id : Retrieve detailed product information
+* GET /api/v1/promotions/active : Retrieve active promotional discount banner data
+* GET /api/v1/locations : Retrieve store directory and operating hours
+* POST /api/v1/auth/login : User authentication and profile retrieval
+* GET /api/v1/users/me/loyalty : Retrieve stamp card progress and unlocked vouchers
+* GET /api/v1/orders/history : Retrieve customer order history
+* POST /api/v1/coupons/validate : Validate promo codes such as DRINKO20 and FREECOFFEE
+* POST /api/v1/orders/checkout : Process cart submission with delivery or takeaway fulfillment
