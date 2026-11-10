@@ -10,13 +10,13 @@ import {
   ArrowRight,
   Truck,
   ShoppingBag,
-  Sparkles,
 } from "lucide-react";
 import { useCart } from "@/context/cart-context";
 import { useAuth } from "@/context/auth-context";
 import { storeLocationsData } from "@/data/menu-data";
 import type { FulfillmentType } from "@/types";
 import { useStoredValue, writeStoredValue } from "@/context/storage";
+import { useRouter } from "next/navigation";
 
 type PromoCode = "DRINKO20" | "FREECOFFEE";
 
@@ -46,11 +46,11 @@ export function CartDrawer() {
     cart,
     updateQuantity,
     removeFromCart,
-    clearCart,
     subtotal,
     showToast,
   } = useCart();
-  const { user, placeOrder, setIsAuthModalOpen } = useAuth();
+  const { user } = useAuth();
+  const router = useRouter();
 
   const fulfillment = useStoredValue<FulfillmentType>(
     "drinko_checkout_fulfillment",
@@ -64,7 +64,7 @@ export function CartDrawer() {
   ).value;
   const deliveryAddress = useStoredValue(
     "drinko_checkout_address",
-    "742 Evergreen Terrace Suite 4B",
+    "",
     isString
   ).value;
   const appliedPromo = useStoredValue<PromoCode | null>(
@@ -73,7 +73,6 @@ export function CartDrawer() {
     isPromoCode
   ).value;
   const [discountCode, setDiscountCode] = useState("");
-  const [unlockedCelebration, setUnlockedCelebration] = useState(false);
 
   const handleFulfillmentChange = (type: FulfillmentType) => {
     writeStoredValue("drinko_checkout_fulfillment", type);
@@ -135,40 +134,8 @@ export function CartDrawer() {
 
   const handleCheckout = () => {
     if (cart.length === 0) return;
-
-    if (!user) {
-      setIsAuthModalOpen(true);
-      return;
-    }
-
-    const destination =
-      fulfillment === "delivery" ? deliveryAddress : selectedStore;
-
-    const { unlockedNewCoupon } = placeOrder({
-      items: cart,
-      fulfillment,
-      destination,
-      subtotal,
-      deliveryFee,
-      discount: discountAmount,
-      total: finalTotal,
-    });
-    clearCart();
-    clearCart();
-    setDiscountCode("");
-    writeStoredValue("drinko_checkout_promo", null);
-
-    if (unlockedNewCoupon) {
-      setUnlockedCelebration(true);
-      showToast(
-        "Congratulations! 6th order completed. Coupon FREECOFFEE unlocked!"
-      );
-    } else {
-      showToast(
-        `Order confirmed for ${fulfillment}. Order added to your history.`
-      );
-      setIsCartOpen(false);
-    }
+    setIsCartOpen(false);
+    router.push("/checkout");
   };
 
   return (
@@ -202,34 +169,7 @@ export function CartDrawer() {
             </button>
           </div>
 
-          {unlockedCelebration ? (
-            <div className="p-6 my-auto text-center space-y-4">
-              <div className="w-16 h-16 rounded-full bg-[#3B5336] text-white flex items-center justify-center mx-auto shadow-md">
-                <Sparkles className="w-8 h-8" />
-              </div>
-              <h3 className="text-xl font-bold text-[#243621]">
-                You Earned a Free Coffee!
-              </h3>
-              <p className="text-xs sm:text-sm text-[#6C7D69] leading-relaxed">
-                You have reached your 6th completed order milestone. Your reward
-                voucher has been unlocked and added to your profile.
-              </p>
-              <div className="p-4 rounded-2xl bg-[#ECF2EA] border border-[#D4E1D1] font-mono text-base font-bold text-[#3B5336] tracking-wider">
-                FREECOFFEE
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setUnlockedCelebration(false);
-                  setIsCartOpen(false);
-                }}
-                className="w-full py-3 rounded-full bg-[#2D4228] text-white text-xs sm:text-sm font-semibold hover:bg-[#20311D] transition-colors cursor-pointer"
-              >
-                Continue to Order Tracking
-              </button>
-            </div>
-          ) : (
-            <>
+          <>
               <div className="px-6 pt-4 pb-2 border-b border-[var(--color-border)]/60 bg-[var(--color-surface)]">
                 <label className="block text-xs font-bold text-[#243621] mb-2 uppercase tracking-wider">
                   Fulfillment Method
@@ -421,21 +361,12 @@ export function CartDrawer() {
                     onClick={handleCheckout}
                     className="w-full py-3.5 rounded-full bg-[#2D4228] hover:bg-[#20311D] text-white text-sm font-semibold flex items-center justify-center gap-2 cursor-pointer transition-colors shadow-xs"
                   >
-                    <span>
-                      {user
-                        ? `Complete ${
-                            fulfillment === "delivery"
-                              ? "Delivery Order"
-                              : "Takeaway Order"
-                          }`
-                        : "Sign In to Complete Order"}
-                    </span>
+                    <span>Continue to Checkout</span>
                     <ArrowRight className="w-4 h-4" />
                   </button>
                 </div>
               )}
-            </>
-          )}
+          </>
         </div>
       </div>
     </div>

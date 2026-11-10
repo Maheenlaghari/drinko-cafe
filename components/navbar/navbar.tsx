@@ -79,12 +79,17 @@ export function Navbar() {
             type="button"
             onClick={() => setIsCartOpen(true)}
             className="relative p-1.5 text-[#243621] hover:text-[#3B5336] transition-colors duration-200 cursor-pointer"
-            aria-label="Shopping bag"
+            aria-label={`Shopping bag, ${totalCount} ${
+              totalCount === 1 ? "item" : "items"
+            }`}
           >
             <ShoppingBag className="w-5 h-5 stroke-[1.8]" />
             {totalCount > 0 && (
-              <span className="absolute -top-1 -right-1 w-4 h-4 bg-[#3B5336] text-white text-[10px] font-bold rounded-full flex items-center justify-center shadow-xs">
-                {totalCount}
+              <span
+                aria-hidden="true"
+                className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-[#3B5336] px-1 text-[10px] font-bold leading-none text-white shadow-xs"
+              >
+                {totalCount > 99 ? "99+" : totalCount}
               </span>
             )}
           </button>

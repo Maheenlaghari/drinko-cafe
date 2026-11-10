@@ -8,6 +8,7 @@ Theme and design provided by undiegravity.
 * Dynamic curated menu with real time category filtering and live search
 * Multi page architecture including dedicated Menu, Delivery, Locations, and Account pages
 * Flexible order fulfillment with Delivery and Takeaway pickup options at checkout
+* Checkout flow with Cash on Delivery and secure card provider handoff
 * Customer authentication and login system with persistent profile management
 * Complete order history tracker with itemized receipts and order status
 * Loyalty stamp card system automatically unlocking free coffee coupon FREECOFFEE after 6 completed orders
@@ -42,3 +43,30 @@ The frontend is structured to consume the following RESTful API endpoints:
 * GET /api/v1/orders/history : Retrieve customer order history
 * POST /api/v1/coupons/validate : Validate promo codes such as DRINKO20 and FREECOFFEE
 * POST /api/v1/orders/checkout : Process cart submission with delivery or takeaway fulfillment
+
+## Checkout Integration
+
+The checkout page sends an order request to `POST /api/v1/orders/checkout`. Set `NEXT_PUBLIC_API_BASE_URL` to the backend origin when it is hosted separately. The request contains customer contact details, fulfillment and destination, product identifiers and quantities, an optional promotion code, order notes, and `cash_on_delivery`, `cash_on_pickup`, or `card` as the payment method.
+
+The backend must validate product availability, calculate all prices and discounts, and create the order. The browser does not send trusted totals. For card payments, the backend must create a hosted payment session and return its HTTPS `checkoutUrl`. Card details are entered by the payment provider and are never collected or stored by this frontend.
+
+Successful Cash on Delivery response:
+
+```json
+{
+  "orderId": "order_123",
+  "paymentStatus": "pending"
+}
+```
+
+Successful card response:
+
+```json
+{
+  "orderId": "order_123",
+  "paymentStatus": "pending",
+  "checkoutUrl": "https://payments.example.com/session/..."
+}
+```
+
+The checkout UI requires this API before it can place an order. Until the endpoint and payment provider are connected, it reports the connection error and leaves the cart unchanged.

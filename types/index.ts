@@ -53,6 +53,34 @@ export interface CartItem {
 
 export type FulfillmentType = "delivery" | "takeaway";
 
+export type CheckoutPaymentMethod =
+  | "cash_on_delivery"
+  | "cash_on_pickup"
+  | "card";
+
+export interface CheckoutRequest {
+  customer: {
+    name: string;
+    email: string;
+    phone: string;
+  };
+  fulfillment: FulfillmentType;
+  destination: string;
+  items: Array<{
+    productId: string;
+    quantity: number;
+  }>;
+  paymentMethod: CheckoutPaymentMethod;
+  promoCode?: string;
+  notes?: string;
+}
+
+export interface CheckoutResponse {
+  orderId: string;
+  paymentStatus: "pending" | "paid";
+  checkoutUrl?: string;
+}
+
 export type OrderStatus = "preparing" | "ready" | "delivered" | "completed";
 
 export interface Order {

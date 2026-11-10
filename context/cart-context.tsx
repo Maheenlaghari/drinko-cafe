@@ -1,6 +1,12 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+} from "react";
 import type { Product, CartItem } from "@/types";
 import { productsData } from "@/data/menu-data";
 import { useStoredValue, writeStoredValue } from "@/context/storage";
@@ -27,33 +33,59 @@ interface CartContextType {
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
-function isStoredCart(value: unknown): value is CartItem[] {
+function isStoredCartItem(value: unknown): value is CartItem {
+  if (typeof value !== "object" || value === null) return false;
+
+  const item = value as Partial<CartItem>;
+  if (typeof item.product !== "object" || item.product === null) return false;
+
+  const product = item.product as Partial<Product>;
   return (
-    Array.isArray(value) &&
-    value.every(
-      (item) =>
-        typeof item.quantity === "number" &&
-        Number.isInteger(item.quantity) &&
-        item.quantity > 0 &&
-        typeof item.product?.id === "string" &&
-        typeof item.product.name === "string" &&
-        typeof item.product.price === "number" &&
-        Number.isFinite(item.product.price) &&
-        typeof item.product.category === "string" &&
-        typeof item.product.image === "string" &&
-        typeof item.product.description === "string"
-    )
+    typeof item.quantity === "number" &&
+    Number.isInteger(item.quantity) &&
+    item.quantity > 0 &&
+    typeof product.id === "string" &&
+    typeof product.name === "string" &&
+    typeof product.price === "number" &&
+    Number.isFinite(product.price) &&
+    typeof product.category === "string" &&
+    typeof product.image === "string" &&
+    typeof product.description === "string"
   );
 }
 
-const defaultCart: CartItem[] = [
-  { product: productsData[0], quantity: 1 },
-  { product: productsData[2], quantity: 1 },
-];
+function isStoredCart(value: unknown): value is CartItem[] {
+  return Array.isArray(value) && value.every(isStoredCartItem);
+}
+
+function normalizeCart(cart: CartItem[]) {
+  const itemsById = new Map<string, CartItem>();
+
+  for (const item of cart) {
+    const catalogProduct = productsData.find(
+      (product) => product.id === item.product.id
+    );
+    const product = catalogProduct ?? {
+      ...item.product,
+      image: item.product.image.replace(/^\/assests\//, "/assets/"),
+    };
+    const existing = itemsById.get(product.id);
+
+    itemsById.set(product.id, {
+      product,
+      quantity: (existing?.quantity ?? 0) + item.quantity,
+    });
+  }
+
+  return Array.from(itemsById.values());
+}
 
 export function CartProvider({ children }: { children: React.ReactNode }) {
-  const storedCart = useStoredValue("drinko_cart", defaultCart, isStoredCart);
-  const cart = storedCart.value;
+  const storedCart = useStoredValue("drinko_cart", [], isStoredCart);
+  const cart = useMemo(
+    () => normalizeCart(storedCart.value),
+    [storedCart.value]
+  );
 
   const [isCartOpen, setIsCartOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
@@ -62,8 +94,17 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
   const saveCart = (newCart: CartItem[]) => {
-    writeStoredValue("drinko_cart", newCart);
+    writeStoredValue("drinko_cart", normalizeCart(newCart));
   };
+
+  useEffect(() => {
+    if (
+      storedCart.found &&
+      JSON.stringify(storedCart.value) !== JSON.stringify(cart)
+    ) {
+      writeStoredValue("drinko_cart", cart);
+    }
+  }, [cart, storedCart.found, storedCart.value]);
 
   const showToast = (message: string) => {
     setToastMessage(message);
